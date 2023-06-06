@@ -1,0 +1,55 @@
+---
+title: 'Ejercicio #2'
+author: "Susana Meoño Piedra"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(datasets)
+```
+
+```{r}
+#Cree un objeto de R donde llame el conjunto de datos mtcars de la librería datasets:
+autos <- datasets::mtcars
+View(autos)
+```
+
+```{r}
+#Filtre el objeto autos para obtener solo los automóviles que tienen más de 100 caballos de fuerza (hp).
+
+autos_mayores <- filter(autos, hp>100)
+View(autos_mayores)
+```
+
+```{r}
+# Ordene dichos automóviles de forma descendente según la potencia (hp)
+
+autos_ordenados <- arrange(autos_mayores, desc(hp))
+View(autos_ordenados)
+```
+
+```{r}
+# Seleccione únicamente las columnas mpg, hp y wt.
+
+columnas_seleccionadas <- select(autos_ordenados, mpg, hp, wt)
+View(columnas_seleccionadas)
+```
+
+```{r}
+# Calcule el promedio de las millas por galón (mpg), la potencia (hp) y el peso (wt) para este conjunto de datos
+
+#promedio_mpg 
+mean(columnas_seleccionadas[[1]])
+
+#promedio_hp 
+mean(columnas_seleccionadas[[2]])
+
+#promedio_wt
+mean(columnas_seleccionadas[[3]])
+```
+
+
+

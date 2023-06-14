@@ -292,6 +292,7 @@ notas_con_media <- notas |>
 # reemplazamos na con la media
 notas_sin_na <- notas_con_media |> 
   mutate(across(c(fisica, quimica, matematica), ~ ifelse(is.na(.), median_score, .)))
+glimpse(notas_sin_na)
 ```
 
 ## Práctica en grupos

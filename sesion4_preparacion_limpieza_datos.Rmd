@@ -114,7 +114,7 @@ esa combinación de valores duplicados.
 # Obtener una lista de las filas duplicadas y su número
 filas_duplicadas <- datos_limpios |>  
   janitor::get_dupes()
-
+  
 #para que no se vean valores repetidos se aplica distinct:
 filas_duplicadas_distintas <- filas_duplicadas |>
 distinct()
@@ -305,18 +305,121 @@ con la función read_csv de readr.
 
 ```{r}
 datos_hospital <- read_csv2("https://raw.githubusercontent.com/isa229/programacion_analisis_datos_ii/main/registros_hospitales2.csv")
+View(datos_hospital)
 ```
 
 2. Determine si hay filas duplicadas. En el caso de que haya, cuántas y cuáles son?
 
+```{r}
+#Primero limpiamos los datos: 
+hospital_limpio <- datos_hospital |> 
+  clean_names()
+```
+
+```{r}
+# Obtener una lista de las filas duplicadas y su número
+filas_hospital_duplicadas <- hospital_limpio |>  
+  janitor::get_dupes()
+
+#para que no se vean valores repetidos se aplica distinct:
+filas_duplicadas_hospital_distintas <- filas_hospital_duplicadas |>
+distinct()
+
+#En total hay 32 filas duplicadas distintas.
+```
+
+
 3. Elimine las filas y columnas vacías (si hay). Cuántas filas vacías eliminó? Eliminó 
 alguna columna?
+
+```{r}
+#En este caso, suponemos que las columnas age-unit, time_admission, merged_header y x20 NO son de importancia y por ello vamos a eliminar estas variables o columnas de la preparación de datos, ya que no aportan información relevante y son redundantes:
+
+datos_limpios_hospital <- hospital_limpio |> 
+  select(-age_unit, -time_admission, -merged_header, -x20) |> 
+  distinct()
+```
+
+```{r}
+datos_hospital_sin_vacios <- datos_limpios_hospital |> 
+  remove_empty(which = c("rows", "cols")) # solamente se removió 1 fila que estaba vacía.
+```
+
 
 4. Para las columnas chills, cough, aches, vomit coloque "Sin información"
 en donde haya NAs, además donde diga "Yes", cámbielo por "Sí"
 
+```{r}
+#Primero sustituir los NA por "Sin información"
+datos_hospital_2 <- datos_hospital_sin_vacios |> 
+  mutate (chills = replace_na(chills, "Sin información"),
+          cough = replace_na(cough, "Sin información"),
+          aches = replace_na(aches, "Sin información"),
+          infection_date = replace_na(infection_date, "Sin información"),
+          date_of_outcome = replace_na(date_of_outcome, "Sin información"),
+          hospital = replace_na(hospital, "Sin información"),
+          infector = replace_na(infector, "Sin información"),
+          fever = replace_na(fever, "Sin información"),
+          vomit = replace_na(vomit, "Sin información"))
+```
+
+```{r}
+#Luego, sustituir "Yes", cámbielo por "Sí"
+datos_hospital_3 <- datos_hospital_2 |> 
+  mutate(fever = case_when(fever == "yes" ~ "Sí",
+                                       fever %in% c("no") ~ "No",TRUE ~ fever),
+         chills = case_when(chills == "yes" ~ "Sí",
+                                       chills %in% c("no") ~ "No",TRUE ~ chills),
+         cough = case_when(cough == "yes" ~ "Sí",
+                                       cough %in% c("no") ~ "No",TRUE ~ cough),
+         aches = case_when(aches == "yes" ~ "Sí",
+                                       aches %in% c("no") ~ "No",TRUE ~ aches),
+         vomit = case_when(vomit == "yes" ~ "Sí",
+                                       vomit %in% c("no") ~ "No",TRUE ~ vomit))
+```
+
+
 5. Cree una nueva columna llamada tiene_fiebre que se calcule de la siguiente manera:
 Si la temperatura es mayor o igual que 37, diga "Si", pero si la temperatura es menor a 37, diga "No".
 
+```{r}
+# Creamos una función para la condicion de fiebre
+
+con_fiebre <- function(temperatura){
+  if (temperatura >= 37) {
+    paste("Sí")
+  } else {
+    paste("No")
+  }
+ }
+```
+
+```{r}
+#Evaluar la funcion para saber si es correcta
+con_fiebre(37)
+```
+
+
+```{r}
+# usamos mutate para añadir la nueva columna:
+
+hospital_final <- datos_hospital_3 |> # nuevo DF
+  rowwise() |> #indica que la operación debe hacerse por fila
+  mutate(tiene_fiebre = con_fiebre("temp"), na.rm = T)
+ 
+glimpse(hospital_final)# verifica que se crea la nueva columna.
+```
+
+
+```{r}
+#Tambien se puede agregar la nueva columna con cbind
+hospital_final <- cbind(datos_hospital_3, tiene_fiebre= con_fiebre("temp"), na.rm = T)
+
+glimpse(hospital_final)# verifica que se crea la nueva columna.
+```
+
+
 6. Revise el conjunto de datos e implemente otras estrategias de limpieza y preparación
 de datos que le parezcan relevantes para este conjunto de datos.
+
+Puede ser reemplazar na con la media de algunas variables.
